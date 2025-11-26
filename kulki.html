@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<title>Hexagon z Kulka, Jajkami, Muzyką i Trybami</title>
+<style>
+  body { font-family: Arial; margin:0; padding:0; background:#f0f0f0; text-align:center; }
+  #logo { margin-top:20px; width:150px; }
+  #marquee { white-space:nowrap; overflow:hidden; width:100%; font-size:2rem; margin:10px 0 30px; height:40px; position:relative; }
+  #marquee span { position:absolute; display:inline-block; }
+  #gameCanvas { background:white; border:2px solid #555; border-radius:10px; display:block; margin:0 auto 20px; }
+  .slider-container { width:300px; margin:10px auto; }
+  label { font-weight:bold; display:block; margin-bottom:5px; }
+  button { margin:5px; padding:8px 20px; font-size:1rem; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<img id="logo" src="https://static.wikia.nocookie.net/silly-cat/images/7/78/Melon_Cat_Species_2.png" alt="Melon Cat Logo" />
+<div id="marquee"><span>KOT ARBUZ KOT ARBUZ KOT ARBUZ KOT ARBUZ </span></div>
+<canvas id="gameCanvas" width="500" height="500"></canvas>
+
+<button id="trailToggle">Włącz RGB trail</button>
+<button id="eggToggle">Włącz SUPER EGG MODE</button>
+
+<div class="slider-container">
+  <label for="hexSpeed">Prędkość obrotu heksagonu:</label>
+  <input type="range" id="hexSpeed" min="0" max="0.1" step="0.001" value="0.02" />
+</div>
+<div class="slider-container">
+  <label for="ballSpeed">Prędkość ruchu kulki:</label>
+  <input type="range" id="ballSpeed" min="1" max="15" step="0.1" value="5" />
+</div>
+
+<audio id="backgroundAudio" src="https://docs.google.com/uc?export=download&id=1a3bY7sUq7AGTlGL4HR1DKqRc4CXSK0YT" loop autoplay muted></audio>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const trailBtn = document.getElementById('trailToggle');
+const eggBtn = document.getElementById('eggToggle');
+const hexSpeed = document.getElementById('hexSpeed'), ballSpeed = document.getElementById('ballSpeed');
+const audio = document.getElementById('backgroundAudio');
+const marquee = document.getElementById('marquee'), marqueeText = marquee.querySelector('span');
+
+document.body.addEventListener('click', () => {
+  if (audio.paused) { audio.muted = false; audio.play(); }
+}, { once: true });
+
+let hexRotation = 0, hue = 0;
+const centerX = canvas.width/2, centerY = canvas.height/2, hexRadius = 150;
+let enableTrail = false, enableEggs = false;
+
+let ball = { x:centerX, y:centerY, radius:20, vx:3, vy:3, speedMul: parseFloat(ballSpeed.value) };
+
+const eggImgs = [
+  "https://upload.wikimedia.org/wikipedia/commons/3/3d/Chicken_egg_and_cross_section.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/0/0b/Chicken_egg_white_bg.png",
+  "https://upload.wikimedia.org/wikipedia/commons/1/11/Chicken_egg_in_shell.jpg"
+];
+const eggImages = [], eggs = [
+  { angle:3, size:50, rot:0, rotSp:0.03, x:0, y:0 },
+  { angle:4, size:50, rot:0, rotSp:-0.02, x:0, y:0 },
+  { angle:5, size:50, rot:0, rotSp:0.04, x:0, y:0 }
+];
+let allLoaded = false, loadedCount = 0;
+eggImgs.forEach(src => {
+  const img = new Image();
+  img.src = src;
+  img.onload = () => { if(++loadedCount === eggImgs.length) allLoaded = true; };
+  eggImages.push(img);
+});
+
+function getHexVertices(cx, cy, r, rot) {
+  return Array.from({length:6}, (_,i) => {
+    const ang = i*Math.PI/3 + rot;
+    return { x:cx + r*Math.cos(ang), y:cy + r*Math.sin(ang) };
+  });
+}
+
+function reflect(b, a, c) {
+  const ex = c.x - a.x, ey = c.y - a.y;
+  const len = Math.hypot(ex,ey), nx = -ey/len, ny = ex/len;
+  const dot = b.vx*nx + b.vy*ny;
+  b.vx -= 2*dot*nx; b.vy -= 2*dot*ny;
+}
+
+let marqueeX = window.innerWidth;
+trailBtn.onclick = () => {
+  enableTrail = !enableTrail;
+  trailBtn.textContent = enableTrail ? 'Wyłącz RGB trail' : 'Włącz RGB trail';
+};
+eggBtn.onclick = () => {
+  enableEggs = !enableEggs;
+  eggBtn.textContent = enableEggs ? 'Wyłącz SUPER EGG MODE' : 'Włącz SUPER EGG MODE';
+};
+
+function update() {
+  hexRotation += parseFloat(hexSpeed.value);
+  const sm = parseFloat(ballSpeed.value);
+  ball.vx *= sm/ball.speedMul; ball.vy *= sm/ball.speedMul; ball.speedMul = sm;
+  ball.x += ball.vx; ball.y += ball.vy;
+
+  const verts = getHexVertices(centerX, centerY, hexRadius, hexRotation);
+  verts.forEach((a,i) => {
+    const b = verts[(i+1)%6];
+    const ex = b.x-a.x, ey = b.y-a.y;
+    const len = Math.hypot(ex,ey), nx = -ey/len, ny = ex/len;
+    const c = -(nx*a.x + ny*a.y);
+    const dist = nx*ball.x + ny*ball.y + c;
+    if (dist < ball.radius) {
+      ball.x += nx*(ball.radius-dist);
+      ball.y += ny*(ball.radius-dist);
+      reflect(ball, a, b);
+      ball.x += ball.vx; ball.y += ball.vy;
+    }
+  });
+
+  if(enableEggs && allLoaded) eggs.forEach(e => e.rot += e.rotSp);
+  eggs.forEach(e => {
+    const verts = getHexVertices(centerX, centerY, hexRadius, hexRotation);
+    const v1=verts[e.angle], v2=verts[(e.angle+1)%6];
+    e.x=(v1.x+v2.x)/2; e.y=(v1.y+v2.y)/2+20;
+  });
+
+  marqueeX -= 2;
+  if (marqueeX < -marqueeText.offsetWidth) marqueeX = window.innerWidth;
+  marqueeText.style.transform = `translateX(${marqueeX}px)`;
+}
+
+function draw() {
+  if (!enableTrail) ctx.clearRect(0,0,canvas.width,canvas.height);
+  else {
+    ctx.fillStyle = `hsla(${hue%360},100%,50%,0.1)`
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    hue++;
+  }
+
+  const verts = getHexVertices(centerX, centerY, hexRadius, hexRotation);
+  ctx.beginPath(); ctx.moveTo(verts[0].x,verts[0].y);
+  verts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.closePath(); ctx.strokeStyle='#333'; ctx.lineWidth=4; ctx.stroke();
+
+  ctx.beginPath(); ctx.fillStyle='tomato';
+  ctx.shadowColor='rgba(0,0,0,0.3)'; ctx.shadowBlur=8;
+  ctx.arc(ball.x,ball.y,ball.radius,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+
+  if(enableEggs && allLoaded) eggs.forEach((e,i)=>{
+    ctx.save(); ctx.translate(e.x,e.y); ctx.rotate(e.rot);
+    ctx.drawImage(eggImages[i], -e.size/2, -e.size/2, e.size, e.size);
+    ctx.restore();
+  });
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+
+</body>
+</html>
