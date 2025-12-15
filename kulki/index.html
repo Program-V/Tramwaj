@@ -5,19 +5,21 @@
 <title>Hexagon z Kulka i Dźwiękiem</title>
 <style>
   body { font-family: Arial; margin:0; padding:0; background:#f0f0f0; text-align:center; }
-  #logo { margin-top:20px; width:150px; }
+  #logo { margin-top:20px; width:150px; cursor:pointer; }
   #marquee { white-space:nowrap; overflow:hidden; width:100%; font-size:2rem; margin:10px 0 30px; height:40px; position:relative; }
   #marquee span { position:absolute; display:inline-block; }
   #gameCanvas { background:white; border:2px solid #555; border-radius:10px; display:block; margin:0 auto 20px; }
   .slider-container { width:300px; margin:10px auto; }
   label { font-weight:bold; display:block; margin-bottom:5px; }
   button { margin:5px; padding:8px 20px; font-size:1rem; cursor:pointer; }
-  #info { margin-top:20px; font-size:1rem; text-align:left; width:90%; max-width:600px; margin-left:auto; margin-right:auto; }
 </style>
 </head>
 <body>
 
-<img id="logo" src="https://static.wikia.nocookie.net/silly-cat/images/7/78/Melon_Cat_Species_2.png" alt="Melon Cat Logo" />
+<a href="https://tramwaj.eu" target="_blank">
+  <img id="logo" src="https://static.wikia.nocookie.net/silly-cat/images/7/78/Melon_Cat_Species_2.png" alt="Melon Cat Logo" />
+</a>
+
 <div id="marquee"><span>KOT ARBUZ KOT ARBUZ KOT ARBUZ KOT ARBUZ </span></div>
 <canvas id="gameCanvas" width="500" height="500"></canvas>
 
@@ -33,10 +35,6 @@
   <input type="range" id="ballSpeed" min="1" max="15" step="0.1" value="5" />
 </div>
 
-<div id="info">
-  <p>Ładowanie danych...</p>
-</div>
-
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -44,7 +42,6 @@ const trailBtn = document.getElementById('trailToggle');
 const soundBtn = document.getElementById('soundToggle');
 const hexSpeed = document.getElementById('hexSpeed'), ballSpeed = document.getElementById('ballSpeed');
 const marquee = document.getElementById('marquee'), marqueeText = marquee.querySelector('span');
-const infoDiv = document.getElementById('info');
 
 let hexRotation = 0, hue = 0;
 const centerX = canvas.width/2, centerY = canvas.height/2, hexRadius = 150;
@@ -140,32 +137,6 @@ function draw() {
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }
 loop();
-
-// Pobranie IP i lokalizacji
-async function updateInfo() {
-  let ip = 'Nieznane';
-  let city = 'Nieznane';
-  let region = 'Nieznane';
-  let country = 'Nieznane';
-  try {
-    const res = await fetch('https://ipapi.co/json/');
-    const data = await res.json();
-    ip = data.ip;
-    city = data.city;
-    region = data.region;
-    country = data.country_name;
-  } catch(e) {}
-
-  const ua = navigator.userAgent;
-  const platform = navigator.platform;
-  infoDiv.innerHTML = `
-    <p>Twoje IP: ${ip}</p>
-    <p>Specyfikacje: ${ua} / ${platform}</p>
-    <p>Twoje położenie: ${city}, ${region}, ${country}</p>
-  `;
-}
-
-updateInfo();
 </script>
 
 </body>
