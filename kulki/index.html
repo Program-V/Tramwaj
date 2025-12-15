@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<title>Hexagon z Kulka i Dźwiękiem</title>
+<style>
+  body { font-family: Arial; margin:0; padding:0; background:#f0f0f0; text-align:center; }
+  #logo { margin-top:20px; width:150px; }
+  #marquee { white-space:nowrap; overflow:hidden; width:100%; font-size:2rem; margin:10px 0 30px; height:40px; position:relative; }
+  #marquee span { position:absolute; display:inline-block; }
+  #gameCanvas { background:white; border:2px solid #555; border-radius:10px; display:block; margin:0 auto 20px; }
+  .slider-container { width:300px; margin:10px auto; }
+  label { font-weight:bold; display:block; margin-bottom:5px; }
+  button { margin:5px; padding:8px 20px; font-size:1rem; cursor:pointer; }
+  #info { margin-top:20px; font-size:1rem; text-align:left; width:90%; max-width:600px; margin-left:auto; margin-right:auto; }
+</style>
+</head>
+<body>
+
+<img id="logo" src="https://static.wikia.nocookie.net/silly-cat/images/7/78/Melon_Cat_Species_2.png" alt="Melon Cat Logo" />
+<div id="marquee"><span>KOT ARBUZ KOT ARBUZ KOT ARBUZ KOT ARBUZ </span></div>
+<canvas id="gameCanvas" width="500" height="500"></canvas>
+
+<button id="trailToggle">Włącz RGB trail</button>
+<button id="soundToggle">Dźwięki: Włączone</button>
+
+<div class="slider-container">
+  <label for="hexSpeed">Prędkość obrotu heksagonu:</label>
+  <input type="range" id="hexSpeed" min="0" max="0.1" step="0.001" value="0.02" />
+</div>
+<div class="slider-container">
+  <label for="ballSpeed">Prędkość ruchu kulki:</label>
+  <input type="range" id="ballSpeed" min="1" max="15" step="0.1" value="5" />
+</div>
+
+<div id="info">
+  <p>Ładowanie danych...</p>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const trailBtn = document.getElementById('trailToggle');
+const soundBtn = document.getElementById('soundToggle');
+const hexSpeed = document.getElementById('hexSpeed'), ballSpeed = document.getElementById('ballSpeed');
+const marquee = document.getElementById('marquee'), marqueeText = marquee.querySelector('span');
+const infoDiv = document.getElementById('info');
+
+let hexRotation = 0, hue = 0;
+const centerX = canvas.width/2, centerY = canvas.height/2, hexRadius = 150;
+let enableTrail = false, enableSound = true;
+
+let ball = { x:centerX, y:centerY, radius:20, vx:3, vy:3, speedMul: parseFloat(ballSpeed.value) };
+
+trailBtn.onclick = () => {
+  enableTrail = !enableTrail;
+  trailBtn.textContent = enableTrail ? 'Wyłącz RGB trail' : 'Włącz RGB trail';
+};
+soundBtn.onclick = () => {
+  enableSound = !enableSound;
+  soundBtn.textContent = enableSound ? 'Dźwięki: Włączone' : 'Dźwięki: Wyłączone';
+};
+
+function getHexVertices(cx, cy, r, rot) {
+  return Array.from({length:6}, (_,i) => {
+    const ang = i*Math.PI/3 + rot;
+    return { x:cx + r*Math.cos(ang), y:cy + r*Math.sin(ang) };
+  });
+}
+
+function reflect(b, a, c) {
+  const ex = c.x - a.x, ey = c.y - a.y;
+  const len = Math.hypot(ex,ey), nx = -ey/len, ny = ex/len;
+  const dot = b.vx*nx + b.vy*ny;
+  b.vx -= 2*dot*nx; b.vy -= 2*dot*ny;
+
+  if(enableSound) playHitSound();
+}
+
+// Funkcja generująca krótki dźwięk uderzenia
+function playHitSound() {
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = 'square';
+  osc.frequency.value = 200 + Math.random()*300;
+  gain.gain.value = 0.2;
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.05);
+}
+
+// Animacja kulki i heksagonu
+let marqueeX = window.innerWidth;
+function update() {
+  hexRotation += parseFloat(hexSpeed.value);
+  const sm = parseFloat(ballSpeed.value);
+  ball.vx *= sm/ball.speedMul; ball.vy *= sm/ball.speedMul; ball.speedMul = sm;
+  ball.x += ball.vx; ball.y += ball.vy;
+
+  const verts = getHexVertices(centerX, centerY, hexRadius, hexRotation);
+  verts.forEach((a,i) => {
+    const b = verts[(i+1)%6];
+    const ex = b.x-a.x, ey = b.y-a.y;
+    const len = Math.hypot(ex,ey), nx = -ey/len, ny = ex/len;
+    const c = -(nx*a.x + ny*a.y);
+    const dist = nx*ball.x + ny*ball.y + c;
+    if (dist < ball.radius) {
+      ball.x += nx*(ball.radius-dist);
+      ball.y += ny*(ball.radius-dist);
+      reflect(ball, a, b);
+      ball.x += ball.vx; ball.y += ball.vy;
+    }
+  });
+
+  marqueeX -= 2;
+  if (marqueeX < -marqueeText.offsetWidth) marqueeX = window.innerWidth;
+  marqueeText.style.transform = `translateX(${marqueeX}px)`;
+}
+
+function draw() {
+  if (!enableTrail) ctx.clearRect(0,0,canvas.width,canvas.height);
+  else {
+    ctx.fillStyle = `hsla(${hue%360},100%,50%,0.1)`
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    hue++;
+  }
+
+  const verts = getHexVertices(centerX, centerY, hexRadius, hexRotation);
+  ctx.beginPath(); ctx.moveTo(verts[0].x,verts[0].y);
+  verts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.closePath(); ctx.strokeStyle='#333'; ctx.lineWidth=4; ctx.stroke();
+
+  ctx.beginPath(); ctx.fillStyle='tomato';
+  ctx.shadowColor='rgba(0,0,0,0.3)'; ctx.shadowBlur=8;
+  ctx.arc(ball.x,ball.y,ball.radius,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+
+// Pobranie IP i lokalizacji
+async function updateInfo() {
+  let ip = 'Nieznane';
+  let city = 'Nieznane';
+  let region = 'Nieznane';
+  let country = 'Nieznane';
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    const data = await res.json();
+    ip = data.ip;
+    city = data.city;
+    region = data.region;
+    country = data.country_name;
+  } catch(e) {}
+
+  const ua = navigator.userAgent;
+  const platform = navigator.platform;
+  infoDiv.innerHTML = `
+    <p>Twoje IP: ${ip}</p>
+    <p>Specyfikacje: ${ua} / ${platform}</p>
+    <p>Twoje położenie: ${city}, ${region}, ${country}</p>
+  `;
+}
+
+updateInfo();
+</script>
+
+</body>
+</html>
