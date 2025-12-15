@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Snake Game</title>
+<link rel="icon" href="628a73cfbc2ec7ad957f4075.ico" type="image/x-icon">
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -69,7 +70,7 @@
 </div>
 
 <!-- Canvas gry -->
-<canvas id="gameCanvas" width="400" height="400" style="display:none;"></canvas>
+<canvas id="gameCanvas" style="display:none;"></canvas>
 
 <!-- Game Over Screen -->
 <div id="gameOverScreen" style="display:none;">
@@ -105,6 +106,16 @@ let eatSound = document.getElementById('eatSound');
 let winSound = document.getElementById('winSound');
 let loseSound = document.getElementById('loseSound');
 
+let snake = [];
+let direction = 'RIGHT';
+let food = [];
+let score = 0;
+let gridSize = 20;
+let gameInterval;
+let pointsToWin = 100;
+let speed = 150;
+let applesCount = 1;
+
 // Symulacja ładowania
 let load = 0;
 let loadingInterval = setInterval(() => {
@@ -117,15 +128,6 @@ let loadingInterval = setInterval(() => {
     }
 }, 30);
 
-// Gra Snake
-let snake = [];
-let direction = 'RIGHT';
-let food = {};
-let score = 0;
-let gridSize = 20;
-let gameInterval;
-let pointsToWin = 100;
-
 function showMenu() {
     canvas.style.display = 'none';
     gameOverScreen.style.display = 'none';
@@ -136,22 +138,45 @@ function showMenu() {
 function startGame(level) {
     menu.style.display = 'none';
     canvas.style.display = 'block';
-    snake = [{x: 10, y: 10}];
+    
+    // ustawienia w zależności od poziomu
+    if(level === 'easy') {
+        canvas.width = 600;
+        canvas.height = 600;
+        pointsToWin = 100;
+        speed = 150;
+        applesCount = 20;
+    } else if(level === 'medium') {
+        canvas.width = 500;
+        canvas.height = 500;
+        pointsToWin = 75;
+        speed = 120;
+        applesCount = 5;
+    } else if(level === 'hard') {
+        canvas.width = 490;
+        canvas.height = 490;
+        pointsToWin = 50;
+        speed = 75;
+        applesCount = 1;
+    }
+    
+    snake = [{x: Math.floor(canvas.width/gridSize/2), y: Math.floor(canvas.height/gridSize/2)}];
     direction = 'RIGHT';
     score = 0;
-    switch(level) {
-        case 'easy': pointsToWin = 100; break;
-        case 'medium': pointsToWin = 150; break;
-        case 'hard': pointsToWin = 200; break;
-    }
-    placeFood();
+    placeFood(applesCount);
+    
     clearInterval(gameInterval);
-    gameInterval = setInterval(updateGame, 150 - (level==='medium'?30:(level==='hard'?60:0)));
+    gameInterval = setInterval(updateGame, speed);
 }
 
-function placeFood() {
-    food.x = Math.floor(Math.random() * (canvas.width/gridSize));
-    food.y = Math.floor(Math.random() * (canvas.height/gridSize));
+function placeFood(count) {
+    food = [];
+    for(let i=0; i<count; i++){
+        food.push({
+            x: Math.floor(Math.random() * (canvas.width/gridSize)),
+            y: Math.floor(Math.random() * (canvas.height/gridSize))
+        });
+    }
 }
 
 document.addEventListener('keydown', (e) => {
@@ -181,19 +206,28 @@ function updateGame() {
     snake.unshift(head);
 
     // jedzenie
-    if(head.x===food.x && head.y===food.y) {
-        score++;
-        eatSound.currentTime = 0;
-        eatSound.play();
-        placeFood();
-        if(score>=pointsToWin) {
-            clearInterval(gameInterval);
-            canvas.style.display='none';
-            winScreen.style.display='flex';
-            winSound.play();
+    for(let i=0;i<food.length;i++){
+        if(head.x===food[i].x && head.y===food[i].y){
+            score++;
+            eatSound.currentTime=0;
+            eatSound.play();
+            food.splice(i,1);
+            placeFood(applesCount - food.length); // uzupełnij brakujące jabłka
+            break;
         }
-    } else {
+    }
+
+    // usuń ogon jeśli nie zjadł
+    if(!food.some(f => f.x===head.x && f.y===head.y)){
         snake.pop();
+    }
+
+    // sprawdź wygraną
+    if(score>=pointsToWin){
+        clearInterval(gameInterval);
+        canvas.style.display='none';
+        winScreen.style.display='flex';
+        winSound.play();
     }
 
     drawGame();
@@ -205,7 +239,7 @@ function drawGame() {
 
     // jedzenie
     ctx.fillStyle='red';
-    ctx.fillRect(food.x*gridSize, food.y*gridSize, gridSize, gridSize);
+    food.forEach(f=>ctx.fillRect(f.x*gridSize, f.y*gridSize, gridSize, gridSize));
 
     // snake
     ctx.fillStyle='lime';
