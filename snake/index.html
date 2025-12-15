@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Snake Game</title>
 <link rel="icon" href="628a73cfbc2ec7ad957f4075.ico" type="image/x-icon">
+<title>Snake Game</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -70,7 +70,7 @@
 </div>
 
 <!-- Canvas gry -->
-<canvas id="gameCanvas" style="display:none;"></canvas>
+<canvas id="gameCanvas" width="400" height="400" style="display:none;"></canvas>
 
 <!-- Game Over Screen -->
 <div id="gameOverScreen" style="display:none;">
@@ -106,16 +106,6 @@ let eatSound = document.getElementById('eatSound');
 let winSound = document.getElementById('winSound');
 let loseSound = document.getElementById('loseSound');
 
-let snake = [];
-let direction = 'RIGHT';
-let food = [];
-let score = 0;
-let gridSize = 20;
-let gameInterval;
-let pointsToWin = 100;
-let speed = 150;
-let applesCount = 1;
-
 // Symulacja ładowania
 let load = 0;
 let loadingInterval = setInterval(() => {
@@ -128,6 +118,15 @@ let loadingInterval = setInterval(() => {
     }
 }, 30);
 
+// Gra Snake
+let snake = [];
+let direction = 'RIGHT';
+let food = {};
+let score = 0;
+let gridSize = 20;
+let gameInterval;
+let pointsToWin = 100;
+
 function showMenu() {
     canvas.style.display = 'none';
     gameOverScreen.style.display = 'none';
@@ -138,45 +137,22 @@ function showMenu() {
 function startGame(level) {
     menu.style.display = 'none';
     canvas.style.display = 'block';
-    
-    // ustawienia w zależności od poziomu
-    if(level === 'easy') {
-        canvas.width = 600;
-        canvas.height = 600;
-        pointsToWin = 100;
-        speed = 150;
-        applesCount = 20;
-    } else if(level === 'medium') {
-        canvas.width = 500;
-        canvas.height = 500;
-        pointsToWin = 75;
-        speed = 120;
-        applesCount = 5;
-    } else if(level === 'hard') {
-        canvas.width = 490;
-        canvas.height = 490;
-        pointsToWin = 50;
-        speed = 75;
-        applesCount = 1;
-    }
-    
-    snake = [{x: Math.floor(canvas.width/gridSize/2), y: Math.floor(canvas.height/gridSize/2)}];
+    snake = [{x: 10, y: 10}];
     direction = 'RIGHT';
     score = 0;
-    placeFood(applesCount);
-    
+    switch(level) {
+        case 'easy': pointsToWin = 100; break;
+        case 'medium': pointsToWin = 150; break;
+        case 'hard': pointsToWin = 200; break;
+    }
+    placeFood();
     clearInterval(gameInterval);
-    gameInterval = setInterval(updateGame, speed);
+    gameInterval = setInterval(updateGame, 150 - (level==='medium'?30:(level==='hard'?60:0)));
 }
 
-function placeFood(count) {
-    food = [];
-    for(let i=0; i<count; i++){
-        food.push({
-            x: Math.floor(Math.random() * (canvas.width/gridSize)),
-            y: Math.floor(Math.random() * (canvas.height/gridSize))
-        });
-    }
+function placeFood() {
+    food.x = Math.floor(Math.random() * (canvas.width/gridSize));
+    food.y = Math.floor(Math.random() * (canvas.height/gridSize));
 }
 
 document.addEventListener('keydown', (e) => {
@@ -194,7 +170,7 @@ function updateGame() {
     if(direction==='UP') head.y--;
     if(direction==='DOWN') head.y++;
 
-    // kolizja ze ścianą lub samym sobą
+    // kolizja ze ścianą
     if(head.x<0 || head.y<0 || head.x>=canvas.width/gridSize || head.y>=canvas.height/gridSize || snake.some(s=>s.x===head.x && s.y===head.y)) {
         clearInterval(gameInterval);
         canvas.style.display='none';
@@ -205,39 +181,20 @@ function updateGame() {
 
     snake.unshift(head);
 
-    let ate = false; // czy wąż zjadł w tym ruchu
-
     // jedzenie
-    for(let i=food.length-1;i>=0;i--){
-        if(head.x===food[i].x && head.y===food[i].y){
-            score++;
-            eatSound.currentTime=0;
-            eatSound.play();
-            food.splice(i,1); // usuń tylko to jabłko
-            ate = true;
-            break;
+    if(head.x===food.x && head.y===food.y) {
+        score++;
+        eatSound.currentTime = 0;
+        eatSound.play();
+        placeFood();
+        if(score>=pointsToWin) {
+            clearInterval(gameInterval);
+            canvas.style.display='none';
+            winScreen.style.display='flex';
+            winSound.play();
         }
-    }
-
-    // usuń ogon tylko jeśli nie zjadł
-    if(!ate){
+    } else {
         snake.pop();
-    }
-
-    // uzupełnij brakujące jabłka
-    while(food.length < applesCount){
-        food.push({
-            x: Math.floor(Math.random() * (canvas.width/gridSize)),
-            y: Math.floor(Math.random() * (canvas.height/gridSize))
-        });
-    }
-
-    // sprawdź wygraną
-    if(score>=pointsToWin){
-        clearInterval(gameInterval);
-        canvas.style.display='none';
-        winScreen.style.display='flex';
-        winSound.play();
     }
 
     drawGame();
@@ -249,7 +206,7 @@ function drawGame() {
 
     // jedzenie
     ctx.fillStyle='red';
-    food.forEach(f=>ctx.fillRect(f.x*gridSize, f.y*gridSize, gridSize, gridSize));
+    ctx.fillRect(food.x*gridSize, food.y*gridSize, gridSize, gridSize);
 
     // snake
     ctx.fillStyle='lime';
