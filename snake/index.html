@@ -194,7 +194,7 @@ function updateGame() {
     if(direction==='UP') head.y--;
     if(direction==='DOWN') head.y++;
 
-    // kolizja ze ścianą
+    // kolizja ze ścianą lub samym sobą
     if(head.x<0 || head.y<0 || head.x>=canvas.width/gridSize || head.y>=canvas.height/gridSize || snake.some(s=>s.x===head.x && s.y===head.y)) {
         clearInterval(gameInterval);
         canvas.style.display='none';
@@ -205,21 +205,31 @@ function updateGame() {
 
     snake.unshift(head);
 
+    let ate = false; // czy wąż zjadł w tym ruchu
+
     // jedzenie
-    for(let i=0;i<food.length;i++){
+    for(let i=food.length-1;i>=0;i--){
         if(head.x===food[i].x && head.y===food[i].y){
             score++;
             eatSound.currentTime=0;
             eatSound.play();
-            food.splice(i,1);
-            placeFood(applesCount - food.length); // uzupełnij brakujące jabłka
+            food.splice(i,1); // usuń tylko to jabłko
+            ate = true;
             break;
         }
     }
 
-    // usuń ogon jeśli nie zjadł
-    if(!food.some(f => f.x===head.x && f.y===head.y)){
+    // usuń ogon tylko jeśli nie zjadł
+    if(!ate){
         snake.pop();
+    }
+
+    // uzupełnij brakujące jabłka
+    while(food.length < applesCount){
+        food.push({
+            x: Math.floor(Math.random() * (canvas.width/gridSize)),
+            y: Math.floor(Math.random() * (canvas.height/gridSize))
+        });
     }
 
     // sprawdź wygraną
