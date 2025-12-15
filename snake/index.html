@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #222;
+        color: #fff;
+        text-align: center;
+        margin: 0;
+        overflow: hidden;
+    }
+    #loadingScreen, #menu, #gameOverScreen, #winScreen {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #111;
+        z-index: 10;
+    }
+    #loadingBar {
+        width: 300px;
+        height: 20px;
+        border: 2px solid #fff;
+        margin-top: 20px;
+        position: relative;
+    }
+    #loadingProgress {
+        background: #0f0;
+        width: 0;
+        height: 100%;
+    }
+    canvas {
+        background: #000;
+        display: block;
+        margin: 0 auto;
+        margin-top: 20px;
+    }
+    button {
+        padding: 10px 20px;
+        margin: 10px;
+        font-size: 18px;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loadingScreen">
+    <h1>SNAKE</h1>
+    <div id="loadingBar">
+        <div id="loadingProgress"></div>
+    </div>
+</div>
+
+<!-- Menu -->
+<div id="menu" style="display:none;">
+    <h1>Wybierz poziom trudności</h1>
+    <button onclick="startGame('easy')">Łatwy</button>
+    <button onclick="startGame('medium')">Średni</button>
+    <button onclick="startGame('hard')">Trudny</button>
+</div>
+
+<!-- Canvas gry -->
+<canvas id="gameCanvas" width="400" height="400" style="display:none;"></canvas>
+
+<!-- Game Over Screen -->
+<div id="gameOverScreen" style="display:none;">
+    <h1>Przegrałeś!</h1>
+    <button onclick="showMenu()">Menu</button>
+</div>
+
+<!-- Win Screen -->
+<div id="winScreen" style="display:none;">
+    <h1>Wygrałeś!</h1>
+    <button onclick="showMenu()">Menu</button>
+</div>
+
+<audio id="eatSound">
+    <source src="https://freesound.org/data/previews/341/341695_3248244-lq.mp3" type="audio/mpeg">
+</audio>
+<audio id="winSound">
+    <source src="https://freesound.org/data/previews/316/316847_5121236-lq.mp3" type="audio/mpeg">
+</audio>
+<audio id="loseSound">
+    <source src="https://freesound.org/data/previews/337/337049_5230654-lq.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+let loadingProgress = document.getElementById('loadingProgress');
+let loadingScreen = document.getElementById('loadingScreen');
+let menu = document.getElementById('menu');
+let canvas = document.getElementById('gameCanvas');
+let ctx = canvas.getContext('2d');
+let gameOverScreen = document.getElementById('gameOverScreen');
+let winScreen = document.getElementById('winScreen');
+let eatSound = document.getElementById('eatSound');
+let winSound = document.getElementById('winSound');
+let loseSound = document.getElementById('loseSound');
+
+// Symulacja ładowania
+let load = 0;
+let loadingInterval = setInterval(() => {
+    load += 2;
+    loadingProgress.style.width = load + '%';
+    if (load >= 100) {
+        clearInterval(loadingInterval);
+        loadingScreen.style.display = 'none';
+        menu.style.display = 'flex';
+    }
+}, 30);
+
+// Gra Snake
+let snake = [];
+let direction = 'RIGHT';
+let food = {};
+let score = 0;
+let gridSize = 20;
+let gameInterval;
+let pointsToWin = 100;
+
+function showMenu() {
+    canvas.style.display = 'none';
+    gameOverScreen.style.display = 'none';
+    winScreen.style.display = 'none';
+    menu.style.display = 'flex';
+}
+
+function startGame(level) {
+    menu.style.display = 'none';
+    canvas.style.display = 'block';
+    snake = [{x: 10, y: 10}];
+    direction = 'RIGHT';
+    score = 0;
+    switch(level) {
+        case 'easy': pointsToWin = 100; break;
+        case 'medium': pointsToWin = 150; break;
+        case 'hard': pointsToWin = 200; break;
+    }
+    placeFood();
+    clearInterval(gameInterval);
+    gameInterval = setInterval(updateGame, 150 - (level==='medium'?30:(level==='hard'?60:0)));
+}
+
+function placeFood() {
+    food.x = Math.floor(Math.random() * (canvas.width/gridSize));
+    food.y = Math.floor(Math.random() * (canvas.height/gridSize));
+}
+
+document.addEventListener('keydown', (e) => {
+    if(e.key==='ArrowUp' && direction!=='DOWN') direction='UP';
+    else if(e.key==='ArrowDown' && direction!=='UP') direction='DOWN';
+    else if(e.key==='ArrowLeft' && direction!=='RIGHT') direction='LEFT';
+    else if(e.key==='ArrowRight' && direction!=='LEFT') direction='RIGHT';
+});
+
+function updateGame() {
+    // nowa pozycja głowy
+    let head = {x: snake[0].x, y: snake[0].y};
+    if(direction==='RIGHT') head.x++;
+    if(direction==='LEFT') head.x--;
+    if(direction==='UP') head.y--;
+    if(direction==='DOWN') head.y++;
+
+    // kolizja ze ścianą
+    if(head.x<0 || head.y<0 || head.x>=canvas.width/gridSize || head.y>=canvas.height/gridSize || snake.some(s=>s.x===head.x && s.y===head.y)) {
+        clearInterval(gameInterval);
+        canvas.style.display='none';
+        gameOverScreen.style.display='flex';
+        loseSound.play();
+        return;
+    }
+
+    snake.unshift(head);
+
+    // jedzenie
+    if(head.x===food.x && head.y===food.y) {
+        score++;
+        eatSound.currentTime = 0;
+        eatSound.play();
+        placeFood();
+        if(score>=pointsToWin) {
+            clearInterval(gameInterval);
+            canvas.style.display='none';
+            winScreen.style.display='flex';
+            winSound.play();
+        }
+    } else {
+        snake.pop();
+    }
+
+    drawGame();
+}
+
+function drawGame() {
+    ctx.fillStyle='#000';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // jedzenie
+    ctx.fillStyle='red';
+    ctx.fillRect(food.x*gridSize, food.y*gridSize, gridSize, gridSize);
+
+    // snake
+    ctx.fillStyle='lime';
+    snake.forEach(s => ctx.fillRect(s.x*gridSize, s.y*gridSize, gridSize, gridSize));
+
+    // punkty
+    ctx.fillStyle='white';
+    ctx.font='20px Arial';
+    ctx.fillText('Punkty: ' + score, 10, 20);
+}
+</script>
+</body>
+</html>
