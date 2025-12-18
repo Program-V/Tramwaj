@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elektronika dla leniwych</title>
+    
+    <style>
+        body {
+            font-family: times new roman;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            padding-bottom: 60px;
+        }
+
+        header {
+            background-color: #4CAF50; 
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border: 5px solid #4CAF50;  
+        }
+
+        header img {
+            width: 50px;  
+            vertical-align: middle;
+            margin-right: 15px;
+        }
+
+        h1 {
+            display: inline-block;
+            margin: 0;
+            vertical-align: middle;
+        }
+
+        .content {
+            padding: 20px;
+            text-align: center;
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="https://ocdn.eu/pulscms-transforms/1/fzbk9kuTURBXy82ODlkNGVlYS02NDZjLTRhNGYtOWI1My0yNGUwMjhhZmYzMzIuanBlZ5GVAs0EsADDw94AAaEwAQ" alt="Logo">  
+        <h1>Elektronika dla leniwych</h1>
+		
+        <img src="https://codziennyekspert.pl/wp-content/uploads/2023/12/Co-to-jest-elektronika-i-czym-sie-zajmuje.jpg" alt="logo2">
+        <h2>Forum Elektroniczne</h2>
+        <p id="ip">IP:</p>
+    </header>
+
+    <div class="content">
+       <h2>Chcesz być mistrzem w elektronice, ale jesteś leniwy? To strona dla ciebie! Tu opowiemy o podstawach elektoniki z naszym najlepszym wybuchowym nauczycielem z Iranu! </h2>
+       <img src="https://github.com/Program-V/Tramwaj/blob/main/Zrzut%20ekranu%202025-12-18%20222842.png?raw=true" alt="Wybuchowy nauczyciel z iranu">
+<p>Wybuchowy nauczyciel z Iranu</p>
+    </div>
+
+    <footer>
+        <p>2025 - tramwaj.eu</p><a href="https://tramwaj.eu/privacypolicy.txt">Polityka Prywatności</a>
+    </footer>
+<script>
+fetch("https://api.ipify.org?format=json")
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById("ip").textContent = "IP: " + data.ip;
+  })
+  .catch(() => {
+    document.getElementById("ip").textContent = "IP: nieznane";
+  });
+</script>
+    <body>
+    <h1>Lista elementów ich funkcji i niebezpieczeństw:</h1>
+    <ul>
+       <h2>Opornik (Rezystor)</h2>
+        <img src="https://png.pngtree.com/png-vector/20240220/ourmid/pngtree-resistors-isolated-resistors-closeup-png-image_11710230.png">
+        <p>Funkcje:</p>
+        <li>Ogranicza przepływ prądu w obwodzie.</li>
+        <li>Używany do kontrolowania napięcia lub prądu.</li>
+        <li>Może też służyć do ustawiania odpowiednich poziomów sygnałów w układach elektronicznych.</li>
+        <p>Niebezpieczeństwa:</p>
+        <li>Przegrzanie: Jeśli opornik jest przeciążony (prąd przekroczy jego dopuszczalną wartość), może się przegrzać i uszkodzić, co prowadzi do zwarcia lub zniszczenia obwodu.</li>
+        <li>Wysoka moc: Przy większych mocach opornik może wytwarzać ciepło, które może poparzyć.</li>
+
+        <h2>Kondensator</h2>
+        <img src="https://png.pngtree.com/png-vector/20231013/ourmid/pngtree-capacitors-condenser-component-multicolored-png-image_10256674.png">
+        <p>Funkcje</p>
+        <li>Magazynuje energię w postaci ładunku elektrycznego.</li>
+        <li>Używany do filtrowania, wygładzania sygnałów, przechowywania energii lub nawet w obwodach czasowych.</li>
+        <p>Niebezpieczeństwa:</p>
+        <li>Wysokie napięcie: Kondensatory mogą przechowywać wysokie napięcie, które po rozładowaniu może wywołać porażenie prądem.</li>
+        <li>Przegrzanie: Zbyt wysokie napięcie może spowodować wybuch kondensatora.</li>
+        <li>Eksplozja: W przypadku kondensatorów elektrolitycznych (szczególnie w obwodach z dużymi prądami) może dojść do ich wybuchu w wyniku przegrzania.</li>
+
+       <h2>Tranzystor</h2><img src="https://upload.wikimedia.org/wikipedia/commons/1/16/Bc635-transistor.png">
+        <p>Funkcje:</p>
+        <li>Wzmacnia sygnał elektryczny lub działa jako przełącznik.</li>
+        <li>Może być używany w obwodach cyfrowych i analogowych, służy do włączania/wyłączania prądów oraz wzmacniania sygnałów audio, wideo i innych.</li>
+        <p>Niebezpieczństwa:</p>
+        <li>Uszkodzenie przez przeciążenie: Przekroczenie dopuszczalnego prądu lub napięcia w tranzystorze może go zniszczyć.</li>
+        <li>Przegrzanie: Wzmacnianie sygnałów wiąże się z produkowaniem ciepła, dlatego może dojść do przegrzania bez odpowiedniego chłodzenia.</li>
+
+       <h2>Dioda</h2>
+        <img src="https://png.pngtree.com/png-vector/20220827/ourmid/pngtree-3d-vector-illustration-of-various-diodes-in-a-set-vector-png-image_25254618.png">
+        <p>Funkcje:</p>
+        <li>Przepuszcza prąd tylko w jednym kierunku. Działa jak zawór elektryczny.</li>
+        <li>Używana w prostownikach (przekształcanie prądu zmiennego w stały), ograniczaniu napięcia i ochronie przed odwrotną polaryzacją.</li>
+        <p>Niebezpieczństwa:</p>
+        <li>Zwarcie: Jeśli zostanie połączona w odwrotną stronę (zwiększone napięcie w odwrotnym kierunku), może się spalić lub uszkodzić inne elementy w obwodzie.</li>
+        <li>Przegrzanie: Dioda przy dużych prądach może się nagrzać i spalić.</li>
+  
+    
+    <h3><p>Podstawowe metody montażu na płytkach drukowanych</p></h3>
+
+<p>Montaż elementów na płytkach drukowanych (PCB) można podzielić na dwie główne techniki: montaż przewlekany (THT) i montaż powierzchniowy (SMD). Każda z nich ma swoje zastosowanie i wymaga odpowiedniego podejścia.</p>
+
+<li>1. Montaż przewlekany (Through-Hole Technology – THT)</li>
+
+<p>W tej metodzie wyprowadzenia elementów (np. rezystorów, kondensatorów, diod) przechodzą przez otwory w PCB.
+Jak montować:</p>
+<ul>
+<li>Włóż końcówki elementu w odpowiednie otwory na płytce.</li>
+
+<li>Od strony lutowanej zagnij lekko końcówki, aby element nie wypadał.</li>
+
+<li>Lutuj końcówki do padów za pomocą lutownicy i cyny.</li>
+
+<li>Po ostygnięciu przytnij nadmiar końcówek nożycami.</li>
+
+<h4><p>Zalety:</p></h4>
+<ul>
+<li>Stabilne mechanicznie połączenie.</li>
+
+<li>Łatwiejsze dla początkujących.</li>
+</ul>
+<h4><p>Wady:</p></h4>
+<ul>
+<li>Zajmuje więcej miejsca na PCB.</li>
+
+<li>Trudniejsze do automatyzacji w produkcji masowej.</li>
+</ul>
+
+<h4><p>2. Montaż powierzchniowy (Surface-Mount Technology – SMD)</p></h4>
+
+<p>W tej metodzie elementy są lutowane bezpośrednio na powierzchnię PCB, bez przechodzenia przez otwory.</p>
+
+<p>Jak montować:</p>
+<ul>
+<li>Na pady nanosimy cyna lub pastę lutowniczą (do hotair lub pieca reflow).</li>
+
+<li>Umieszczamy elementy SMD pęsetą w odpowiednich pozycjach.</li>
+
+<li>Lutujemy elementy przy użyciu lutownicy z cienkim grotem, hotair lub w piecu reflow.</li>
+
+<p>Zalety:</p>
+
+<li>Możliwość miniaturyzacji układów.</li>
+
+<li>Nadaje się do automatycznej produkcji.</li>
+
+<p>Wady:</p>
+
+<li>Trudniejsze dla początkujących, wymaga precyzji.</li>
+
+<li>Małe elementy mogą łatwo się przesunąć.</li>
+
+<p>3. Dodatkowe techniki pomocnicze</p>
+
+<li>Mostki lutownicze: czasem stosowane do połączenia dwóch punktów na PCB, np. przy naprawach.</li>
+
+<li>Klejowanie elementów przed lutowaniem: przy SMD można elementy przykleić klejem UV lub termoprzewodzącym, aby nie przesuwały się przed lutowaniem.</li>
+
+<li>Użycie szablonów pasty lutowniczej: przy SMD można nanosić pastę równomiernie za pomocą specjalnych szablonów, co ułatwia lutowanie w piecu reflow.</li>
+
+</html>
