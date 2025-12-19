@@ -65,6 +65,9 @@
 
     <div class="content">
        <h2>Chcesz być mistrzem w elektronice, ale jesteś leniwy? To strona dla ciebie! Tu opowiemy o podstawach elektoniki z naszym najlepszym wybuchowym nauczycielem z Iranu! </h2>
+		img {
+  border-radius: 50%;
+}
        <img src="https://github.com/Program-V/Tramwaj/blob/main/Zrzut%20ekranu%202025-12-18%20222842.png?raw=true" alt="Wybuchowy nauczyciel z iranu">
 <p>Wybuchowy nauczyciel z Iranu</p>
     </div>
@@ -93,27 +96,35 @@ fetch("https://api.ipify.org?format=json")
         <li>Używany do kontrolowania napięcia lub prądu.</li>
         <li>Może też służyć do ustawiania odpowiednich poziomów sygnałów w układach elektronicznych.</li>
         <p>Niebezpieczeństwa:</p>
-        <li>Przegrzanie: Jeśli opornik jest przeciążony (prąd przekroczy jego dopuszczalną wartość), może się przegrzać i uszkodzić, co prowadzi do zwarcia lub zniszczenia obwodu.</li>
-        <li>Wysoka moc: Przy większych mocach opornik może wytwarzać ciepło, które może poparzyć.</li>
+        <li>Poparzenie: Rezystor przy pracy bardzo się grzeje. Można się nim łatwo poparzyć </li>
+		<li>Zniszczenie obwodu: Przy przegraniu rezystor może się spalić zwierając obwód i go niszcząc. 
+			Może też zadziałać jak bezpiecznik i go przerwać</li>
+	</ul>
 
         <h2>Kondensator</h2>
         <img src="https://png.pngtree.com/png-vector/20231013/ourmid/pngtree-capacitors-condenser-component-multicolored-png-image_10256674.png">
         <p>Funkcje</p>
+		<ul>
         <li>Magazynuje energię w postaci ładunku elektrycznego.</li>
-        <li>Używany do filtrowania, wygładzania sygnałów, przechowywania energii lub nawet w obwodach czasowych.</li>
-        <p>Niebezpieczeństwa:</p>
+        <li>Używany do filtrowania, wygładzania sygnałów, przechowywania energii i w obwodach czasowych.</li>
+        </ul>
+			<p>Niebezpieczeństwa:</p>
+		<ul>
         <li>Wysokie napięcie: Kondensatory mogą przechowywać wysokie napięcie, które po rozładowaniu może wywołać porażenie prądem.</li>
-        <li>Przegrzanie: Zbyt wysokie napięcie może spowodować wybuch kondensatora.</li>
+        <li>Zbyt wysokie napięcie może spowodować uszkodzenie kondensatora i obwodu.</li>
         <li>Eksplozja: W przypadku kondensatorów elektrolitycznych (szczególnie w obwodach z dużymi prądami) może dojść do ich wybuchu w wyniku przegrzania.</li>
-
+</ul>
        <h2>Tranzystor</h2><img src="https://upload.wikimedia.org/wikipedia/commons/1/16/Bc635-transistor.png">
         <p>Funkcje:</p>
+		<ul>
         <li>Wzmacnia sygnał elektryczny lub działa jako przełącznik.</li>
         <li>Może być używany w obwodach cyfrowych i analogowych, służy do włączania/wyłączania prądów oraz wzmacniania sygnałów audio, wideo i innych.</li>
-        <p>Niebezpieczństwa:</p>
-        <li>Uszkodzenie przez przeciążenie: Przekroczenie dopuszczalnego prądu lub napięcia w tranzystorze może go zniszczyć.</li>
-        <li>Przegrzanie: Wzmacnianie sygnałów wiąże się z produkowaniem ciepła, dlatego może dojść do przegrzania bez odpowiedniego chłodzenia.</li>
-
+       </ul>
+		<p>Niebezpieczństwa:</p>
+		<ul>
+        <li>Uszkodzenie przez przeciążenie: Przy spaleniu może zniszczyć obwód</li>
+        <li>Poparzenie: Wzmacnianie sygnałów wiąże się z produkowaniem ciepła, dlatego może dojść do przegrzania bez odpowiedniego chłodzenia.</li>
+</ul>
        <h2>Dioda</h2>
         <img src="https://png.pngtree.com/png-vector/20220827/ourmid/pngtree-3d-vector-illustration-of-various-diodes-in-a-set-vector-png-image_25254618.png">
         <p>Funkcje:</p>
@@ -124,7 +135,7 @@ fetch("https://api.ipify.org?format=json")
 			<p>Niebezpieczństwa:</p>
 		<ul>
         <li>Zwarcie: Jeśli zostanie połączona w odwrotną stronę (zwiększone napięcie w odwrotnym kierunku), może się spalić lub uszkodzić inne elementy w obwodzie.</li>
-        <li>Przegrzanie: Dioda przy dużych prądach może się nagrzać i spalić.</li>
+        <li>Poparzenie: Przy przeciążeniu dioda mocno się grzeje. Przez bycie nieostrożnym można łatwo się nią poparzyć</li>
   </ul>
     
     <h3><p>Podstawowe metody montażu na płytkach drukowanych</p></h3>
