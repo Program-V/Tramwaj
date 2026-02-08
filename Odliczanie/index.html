@@ -137,7 +137,11 @@ date.addEventListener("input", validateDateTime);
 time.addEventListener("input", validateDateTime);
 title.addEventListener("input", makeLink);
 
+let invalidDate=false;
+
 function validateDateTime(){
+    invalidDate=false;
+
     let d = date.value.replace(/\D/g,""); // tylko cyfry
     if(d.length>2) d=d.slice(0,2)+"/"+d.slice(2);
     if(d.length>5) d=d.slice(0,5)+"/"+d.slice(5,9);
@@ -166,8 +170,8 @@ function validateDateTime(){
         // sprawdzenie liczby dni w miesiącu
         const daysInMonth = new Date(year, month, 0).getDate();
         if(day>daysInMonth){
-            link.innerHTML="Taka data nie istnieje";
-            return;
+            invalidDate=true;
+            day=daysInMonth; // poprawna wartość do wyświetlenia w input
         }
         // aktualizacja inputa po korekcji
         date.value=String(day).padStart(2,"0")+"/"+String(month).padStart(2,"0")+"/"+year;
@@ -178,13 +182,17 @@ function validateDateTime(){
 
 /* ===== LINK ===== */
 function makeLink(){
-    if(title.value && date.value.length===10 && time.value.length===5 && link.innerHTML!=="Taka data nie istnieje"){
+    if(title.value && date.value.length===10 && time.value.length===5){
         const d=date.value.replace(/\//g,"");
         const h=time.value.replace(":","");
-        link.innerHTML =
-          `<a href="?t=${title.value}&d=${d}&h=${h}">
-           ?t=${title.value}&d=${d}&h=${h}</a>`;
-    } else if(link.innerHTML!=="Taka data nie istnieje") {
+        if(invalidDate){
+            link.innerHTML =
+                `<a href="invalid.html" target="_blank">?t=${title.value}&d=${d}&h=${h}</a>`;
+        } else {
+            link.innerHTML =
+                `<a href="?t=${title.value}&d=${d}&h=${h}">?t=${title.value}&d=${d}&h=${h}</a>`;
+        }
+    } else {
         link.innerHTML="";
     }
 }
