@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Odliczanie</title>
-     <link rel="icon" href="iconodliczanie.ico" type="image/x-icon">
+<link rel="icon" href="iconodliczanie.ico" type="image/x-icon">
 <style>
 body{
     margin:0;
@@ -127,36 +127,66 @@ button{
 </div>
 
 <script>
-/* ===== AUTO FORMAT ===== */
+/* ===== AUTO FORMAT I WALIDACJA ===== */
 const title=document.getElementById("title");
 const date=document.getElementById("date");
 const time=document.getElementById("time");
 const link=document.getElementById("link");
 
-date.addEventListener("input", ()=>{
-    let v=date.value.replace(/\D/g,"");
-    if(v.length>2) v=v.slice(0,2)+"/"+v.slice(2);
-    if(v.length>5) v=v.slice(0,5)+"/"+v.slice(5,9);
-    date.value=v;
-    makeLink();
-});
-time.addEventListener("input", ()=>{
-    let v=time.value.replace(/\D/g,"");
-    if(v.length>2) v=v.slice(0,2)+":"+v.slice(2,4);
-    time.value=v;
-    makeLink();
-});
+date.addEventListener("input", validateDateTime);
+time.addEventListener("input", validateDateTime);
 title.addEventListener("input", makeLink);
+
+function validateDateTime(){
+    let d = date.value.replace(/\D/g,""); // tylko cyfry
+    if(d.length>2) d=d.slice(0,2)+"/"+d.slice(2);
+    if(d.length>5) d=d.slice(0,5)+"/"+d.slice(5,9);
+    date.value=d;
+
+    let t = time.value.replace(/\D/g,"");
+    if(t.length>2) t=t.slice(0,2)+":"+t.slice(2,4);
+    time.value=t;
+
+    // walidacja godzin i minut
+    if(t.length===5){
+        let hh=parseInt(t.slice(0,2),10);
+        let mm=parseInt(t.slice(3,5),10);
+        if(hh>23){ hh=23; } 
+        if(mm>59){ mm=59; }
+        time.value=String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");
+    }
+
+    // walidacja daty
+    if(d.length===10){
+        let day=parseInt(d.slice(0,2),10);
+        let month=parseInt(d.slice(3,5),10);
+        let year=parseInt(d.slice(6,10),10);
+
+        if(month>12) month=12;
+        // sprawdzenie liczby dni w miesiącu
+        const daysInMonth = new Date(year, month, 0).getDate();
+        if(day>daysInMonth){
+            link.innerHTML="Taka data nie istnieje";
+            return;
+        }
+        // aktualizacja inputa po korekcji
+        date.value=String(day).padStart(2,"0")+"/"+String(month).padStart(2,"0")+"/"+year;
+    }
+
+    makeLink();
+}
 
 /* ===== LINK ===== */
 function makeLink(){
-    if(title.value && date.value.length===10 && time.value.length===5){
+    if(title.value && date.value.length===10 && time.value.length===5 && link.innerHTML!=="Taka data nie istnieje"){
         const d=date.value.replace(/\//g,"");
         const h=time.value.replace(":","");
         link.innerHTML =
           `<a href="?t=${title.value}&d=${d}&h=${h}">
            ?t=${title.value}&d=${d}&h=${h}</a>`;
-    } else link.innerHTML="";
+    } else if(link.innerHTML!=="Taka data nie istnieje") {
+        link.innerHTML="";
+    }
 }
 
 /* ===== CZAS (SERWER + FALLBACK) ===== */
