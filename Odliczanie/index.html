@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Odliczanie</title>
+<style>
+body{
+    margin:0;
+    background:#ffffff;
+    color:#000000;
+    font-family:"Times New Roman", serif;
+}
+
+/* Górny napis */
+#header{
+    text-align:center;
+    font-weight:bold;
+    font-size:28px;
+    padding:15px 0;
+}
+#header a{
+    text-decoration:none;
+    color:inherit;
+}
+
+/* LCD ZEGAR */
+.lcd{
+    position:fixed;
+    top:15px;
+    right:15px;
+    background:#b7d7b7;
+    color:#000;
+    border:6px solid #333;
+    padding:12px 16px;
+    width:320px;
+}
+.days{display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px}
+.day{opacity:.3}
+.day.active{opacity:1;background:#000;color:#b7d7b7;padding:2px 4px}
+.time-row{display:flex;align-items:center}
+.ampm{width:50px;font-size:22px}
+.time{font-size:44px}
+
+/* === NOWA CZCIONKA ZEGARA === */
+.lcd .time,
+.lcd .ampm {
+    font-family: "Courier New", monospace;
+}
+
+/* SETUP */
+.setup{padding:40px}
+input{
+    padding:8px;
+    font-size:16px;
+    margin:6px 0;
+}
+#link{margin-top:10px;word-break:break-all}
+
+/* ODLICZANIE */
+.count{
+    display:none;
+    height:100vh;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    text-align:center;
+}
+.big{font-size:32px;margin-bottom:10px}
+.line{font-size:20px;margin:4px}
+
+/* TRYB */
+#modeSelect{
+    margin-top:20px;
+    text-align:center;
+}
+button{
+    padding:8px 12px;
+    margin:0 10px;
+    font-size:16px;
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="header"><a href="https://tramwaj.eu" target="_blank">Odliczanie</a></div>
+
+<!-- SETUP -->
+<div class="setup" id="setup">
+    <h2>Ustaw odliczanie</h2>
+    <input id="title" placeholder="Tytuł"><br>
+    <input id="date" placeholder="dd/mm/rrrr" maxlength="10"><br>
+    <input id="time" placeholder="gg:mm" maxlength="5"><br>
+    <div id="link"></div>
+</div>
+
+<!-- ODLICZANIE -->
+<div class="count" id="count">
+    <div class="big" id="ctitle"></div>
+    <div class="line" id="l_days"></div>
+    <div class="line" id="l_minutes"></div>
+    <div class="line" id="l_seconds"></div>
+</div>
+
+<!-- TRYB -->
+<div id="modeSelect">
+    <button onclick="setMode('dark')">Ciemny</button>
+    <button onclick="setMode('light')">Jasny</button>
+</div>
+
+<!-- ZEGAR -->
+<div class="lcd">
+    <div class="days">
+        <div class="day" id="d1">MO</div>
+        <div class="day" id="d2">TU</div>
+        <div class="day" id="d3">WE</div>
+        <div class="day" id="d4">TH</div>
+        <div class="day" id="d5">FR</div>
+        <div class="day" id="d6">SA</div>
+        <div class="day" id="d0">SU</div>
+    </div>
+    <div class="time-row">
+        <div class="ampm" id="ampm">AM</div>
+        <div class="time" id="clock">00:00:00</div>
+    </div>
+</div>
+
+<script>
+/* ===== AUTO FORMAT ===== */
+const title=document.getElementById("title");
+const date=document.getElementById("date");
+const time=document.getElementById("time");
+const link=document.getElementById("link");
+
+date.addEventListener("input", ()=>{
+    let v=date.value.replace(/\D/g,"");
+    if(v.length>2) v=v.slice(0,2)+"/"+v.slice(2);
+    if(v.length>5) v=v.slice(0,5)+"/"+v.slice(5,9);
+    date.value=v;
+    makeLink();
+});
+time.addEventListener("input", ()=>{
+    let v=time.value.replace(/\D/g,"");
+    if(v.length>2) v=v.slice(0,2)+":"+v.slice(2,4);
+    time.value=v;
+    makeLink();
+});
+title.addEventListener("input", makeLink);
+
+/* ===== LINK ===== */
+function makeLink(){
+    if(title.value && date.value.length===10 && time.value.length===5){
+        const d=date.value.replace(/\//g,"");
+        const h=time.value.replace(":","");
+        link.innerHTML =
+          `<a href="?t=${title.value}&d=${d}&h=${h}">
+           ?t=${title.value}&d=${d}&h=${h}</a>`;
+    } else link.innerHTML="";
+}
+
+/* ===== CZAS (SERWER + FALLBACK) ===== */
+let nowTime=null;
+let nowTimeAtLoad=null;
+async function fetchTime(){
+    try{
+        const r=await fetch("https://worldtimeapi.org/api/timezone/Europe/Warsaw");
+        const j=await r.json();
+        nowTime=new Date(j.datetime).getTime();
+    }catch{
+        nowTime=Date.now();
+    }
+    if(!nowTimeAtLoad) nowTimeAtLoad = nowTime;
+}
+
+/* ===== PARAMETRY Z LINKU ===== */
+const p=new URLSearchParams(location.search);
+let target=null, startTime=null;
+
+if(p.has("t")){
+    document.getElementById("setup").style.display="none";
+    document.getElementById("count").style.display="flex";
+
+    const t=p.get("t");
+    const d=p.get("d");
+    const h=p.get("h");
+
+    target=new Date(
+        d.slice(4,8), d.slice(2,4)-1, d.slice(0,2),
+        h.slice(0,2), h.slice(2,4)
+    ).getTime();
+
+    startTime=null;
+    document.getElementById("ctitle").textContent=t;
+}
+
+/* ===== Sygnał 1kHz ===== */
+function beep(){
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.frequency.value=1000;
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime+1);
+}
+let lastHour=-1;
+
+/* ===== TRYB ===== */
+function setMode(mode){
+    if(mode==='dark'){
+        document.body.style.background="#000"; // ciemne tło
+        document.body.style.color="#fff";       // białe litery
+    } else {
+        document.body.style.background="#fff"; // jasne tło
+        document.body.style.color="#000";       // czarne litery
+    }
+}
+
+/* ===== UPDATE ===== */
+function tick(){
+    if(!nowTime) return;
+
+    const n=new Date(nowTime);
+
+    // zegar LCD
+    let hh=n.getHours();
+    const mm=n.getMinutes();
+    const ss=n.getSeconds();
+    document.getElementById("ampm").textContent=hh>=12?"PM":"AM";
+    hh=hh%12||12;
+    document.getElementById("clock").textContent=
+        `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
+    document.querySelectorAll(".day").forEach(d=>d.classList.remove("active"));
+    document.getElementById("d"+n.getDay()).classList.add("active");
+
+    // odliczanie
+    if(target){
+        if(!startTime) startTime=nowTimeAtLoad;
+        const diff=target-nowTime;
+        const days=Math.floor(diff/86400000);
+        const mins=Math.floor(diff/60000);
+        const secs=Math.floor(diff/1000);
+        document.getElementById("l_days").textContent=`Pozostało ${days} dni`;
+        document.getElementById("l_minutes").textContent=`${mins} minut`;
+        document.getElementById("l_seconds").textContent=`${secs} sekund`;
+    }
+
+    // sygnał co pełną godzinę
+    if(mm===0 && ss===0 && n.getHours()!==lastHour){
+        beep();
+        lastHour=n.getHours();
+    }
+
+    nowTime+=1000;
+}
+
+/* START */
+fetchTime().then(()=>{
+    tick();
+    setInterval(tick,1000);
+});
+setInterval(fetchTime,300000);
+</script>
+</body>
+</html>
