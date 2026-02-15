@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zespół Filmowy Metr Metra</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #0f0f0f;
+        color: #ffffff;
+    }
+
+    header {
+        height: 350px;
+        background: linear-gradient(135deg, #111 40%, #ff0033 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    header h1 {
+        font-size: 48px;
+        margin: 0;
+    }
+
+    header p {
+        font-size: 20px;
+        opacity: 0.8;
+    }
+
+    section {
+        padding: 50px 10%;
+    }
+
+    h2 {
+        border-left: 5px solid #ff0033;
+        padding-left: 15px;
+    }
+
+    .tworcy {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+
+    .karta {
+        background-color: #1b1b1b;
+        border-radius: 12px;
+        padding: 20px;
+        flex: 1;
+        min-width: 260px;
+        transition: 0.3s;
+    }
+
+    .karta:hover {
+        transform: scale(1.03);
+    }
+
+    .karta img {
+        width: 100%;
+        border-radius: 12px;
+    }
+
+    .galeria {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .galeria img {
+        width: 100%;
+        border-radius: 10px;
+    }
+
+    .button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 12px 25px;
+        background: #ff0033;
+        color: white;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .button:hover {
+        background: #cc0029;
+    }
+
+    footer {
+        background: #000;
+        text-align: center;
+        padding: 20px;
+        color: #aaa;
+        font-size: 14px;
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Zespół Filmowy Metr Metra</h1>
+    <p>Recenzje • Twórczość Filmowa • Projekty Kreatywne</p>
+    <a href="https://www.youtube.com/@ZFMetrMetra" class="button">Przejdź na nasz kanał</a>
+</header>
+
+<section>
+    <h2>O Nas</h2>
+    <p>
+        Zespół Filmowy Metr Metra to zespół twórców internetowych tworzących
+        recenzje produktów, kreatywne eksperymenty oraz ambitne kino amatorskie.
+        Łączymy technikę, humor i autorską wizję filmową.
+    </p>
+</section>
+
+<section>
+    <h2>Twórcy</h2>
+    <div class="tworcy">
+        <div class="karta">
+       
+            <h3>Pan Dziewczyna (Femboj)</h3>
+            <p>Nagrywki, montaż, napisy. Podkłada głos w większości filmów.</p>
+        </div>
+
+        <div class="karta">
+           
+            <h3>Pan Spawacz</h3>
+            <p>Montaż, napisy, nagrywki. To on posiada większość sprzętu do nagrywek (czyt. starą nokię i kartę 1gb)</p>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>Recenzje</h2>
+    <div class="galeria">
+        <img src="rec1.jpg" alt="Recenzja radiobudzika">
+        <img src="rec2.jpg" alt="Recenzja baterii">
+        <img src="rec3.jpg" alt="!UWAGA, PRZED OBEJRZENIEM KONIECZNIE ŚCISZ!Recenzja maski gazowej">
+    </div>
+</section>
+
+<section>
+    <h2>Kino Amatorskie</h2>
+    <p>
+        Tworzymy autorskie produkcje filmowe – krótkie metraże, eksperymenty
+        wizualne oraz projekty fabularne realizowane z pasją.
+    </p>
+
+ 
+</section>
+
+<footer>
+    © 2026 Zespół Filmowy Metr Metra
+</footer>
+
+</body>
+</html>
