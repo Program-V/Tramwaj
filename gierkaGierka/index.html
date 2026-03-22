@@ -106,6 +106,19 @@
       border: 1px solid rgba(255,255,255,0.12);
     }
     .overlay-card h2 { margin-top: 0; color: var(--accent); }
+    .refresh-alert {
+      margin-top: 16px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      animation: blinkRefresh 1s step-end infinite;
+    }
+    @keyframes blinkRefresh {
+      0%, 49% { background: #7a0000; color: #fff; }
+      50%, 100% { background: #000; color: #ff4d4d; }
+    }
     .buttons { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 16px; }
     button, .link-btn {
       border: 0;
@@ -169,7 +182,7 @@
         <div class="overlay" id="overlay">
           <div class="overlay-card">
             <h2 id="overlayTitle">Start!</h2>
-            <p id="overlayText">Kliknij „Graj”, a potem poruszaj się klawiszami strzałek lub A/D. Nie wpadaj w przeszkody.</p>
+            <p id="overlayText">Kliknij „Graj”. Sterowanie: <strong>← / A</strong> w lewo, <strong>→ / D</strong> w prawo. Na telefonie użyj przycisków pod planszą.</p>
             <div class="buttons">
               <button class="primary" id="startButton">Graj</button>
               <a class="link-btn" href="/">Wróć na główną</a>
@@ -177,13 +190,19 @@
           </div>
         </div>
       </div>
+      <div class="buttons" style="margin-top: 16px;">
+        <button class="secondary" id="leftButton" type="button">⬅ Lewo</button>
+        <button class="secondary" id="rightButton" type="button">Prawo ➡</button>
+      </div>
     </section>
 
     <aside class="panel sidebar">
       <h2>Jak grać?</h2>
       <ul class="tip-list">
         <li>Edward Gierek jedzie po trzech pasach drogi.</li>
-        <li>Plansza przyspiesza z czasem, więc gra robi się coraz trudniejsza.</li>
+        <li>Sterowanie: <strong>strzałka w lewo / A</strong> i <strong>strzałka w prawo / D</strong>.</li>
+        <li>Na telefonie możesz użyć dużych przycisków <strong>Lewo</strong> i <strong>Prawo</strong> pod planszą.</li>
+        <li>Gra startuje z prędkością <strong>0.05x</strong>, po 2 minutach ma <strong>1.0x</strong>, po 4 minutach <strong>2.0x</strong>.</li>
         <li>Po zderzeniu możesz zapisać wynik pod swoim nickiem.</li>
       </ul>
 
@@ -212,6 +231,8 @@
     const bestScoreEl = document.getElementById('bestScore');
     const speedEl = document.getElementById('speed');
     const leaderboardBody = document.getElementById('leaderboardBody');
+    const leftButton = document.getElementById('leftButton');
+    const rightButton = document.getElementById('rightButton');
 
     const STORAGE_KEY = 'gierka-gierka-scores';
     const laneCenters = [220, 360, 500];
@@ -220,7 +241,7 @@
       animationId: null,
       distance: 0,
       score: 0,
-      speed: 5,
+      speed: 0.05,
       playerLane: 1,
       obstacles: [],
       obstacleTimer: 0,
@@ -281,19 +302,22 @@
     function resetGame() {
       state.distance = 0;
       state.score = 0;
-      state.speed = 5;
+      state.speed = 0.05;
       state.playerLane = 1;
       state.obstacles = [];
       state.obstacleTimer = 0;
       state.roadOffset = 0;
       scoreEl.textContent = '0';
-      speedEl.textContent = '1.0x';
+      speedEl.textContent = '0.05x';
+      startButton.dataset.locked = 'false';
+      startButton.style.display = 'inline-flex';
     }
 
-    function showOverlay(title, text, buttonLabel = 'Zagraj jeszcze raz') {
+    function showOverlay(title, text, buttonLabel = 'Zagraj jeszcze raz', hideStart = false) {
       overlayTitle.textContent = title;
       overlayText.innerHTML = text;
       startButton.textContent = buttonLabel;
+      startButton.style.display = hideStart ? 'none' : 'inline-flex';
       overlay.classList.remove('hidden');
     }
 
@@ -316,22 +340,29 @@
     function update() {
       if (!state.running) return;
 
-      if (keys.left) state.playerLane = clamp(state.playerLane - 0.14, 0, 2);
-      if (keys.right) state.playerLane = clamp(state.playerLane + 0.14, 0, 2);
+      if (keys.left) state.playerLane = clamp(state.playerLane - 0.1, 0, 2);
+      if (keys.right) state.playerLane = clamp(state.playerLane + 0.1, 0, 2);
 
       state.distance += 1;
-      state.score = Math.floor(state.distance / 6);
-      state.speed = 5 + state.distance / 380;
-      state.roadOffset = (state.roadOffset + state.speed) % 80;
+      state.score = Math.floor(state.distance / 8);
+
+      const elapsedSeconds = state.distance / 60;
+      if (elapsedSeconds <= 120) {
+        state.speed = 0.05 + (elapsedSeconds / 120) * 0.95;
+      } else {
+        state.speed = 1 + ((elapsedSeconds - 120) / 120);
+      }
+
+      state.roadOffset = (state.roadOffset + state.speed * 4) % 80;
       state.obstacleTimer += 1;
 
-      if (state.obstacleTimer > Math.max(24, 70 - state.speed * 4)) {
+      if (state.obstacleTimer > Math.max(52, 115 - state.speed * 9)) {
         state.obstacleTimer = 0;
         spawnObstacle();
       }
 
       state.obstacles.forEach(obstacle => {
-        obstacle.y += state.speed * 1.8;
+        obstacle.y += state.speed * 2.2;
       });
       state.obstacles = state.obstacles.filter(obstacle => obstacle.y < canvas.height + 140);
 
@@ -347,7 +378,7 @@
       });
 
       scoreEl.textContent = state.score;
-      speedEl.textContent = `${(state.speed / 5).toFixed(1)}x`;
+      speedEl.textContent = `${state.speed.toFixed(2)}x`;
 
       if (collided) {
         endGame();
@@ -462,10 +493,13 @@
         }
       }
 
-      showOverlay('BUM!', summary, 'Spróbuj ponownie');
+      summary += '<div class="refresh-alert">!ODŚWIEŻ STRONĘ!</div>';
+      startButton.dataset.locked = 'true';
+      showOverlay('BUM!', summary, 'Odśwież stronę', true);
     }
 
     function startGame() {
+      if (startButton.dataset.locked === 'true') return;
       resetGame();
       hideOverlay();
       state.running = true;
@@ -476,13 +510,35 @@
     window.addEventListener('keydown', event => {
       if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') keys.left = true;
       if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') keys.right = true;
-      if (!state.running && event.key === 'Enter') startGame();
+      if (!state.running && event.key === 'Enter' && startButton.dataset.locked !== 'true') startGame();
     });
 
     window.addEventListener('keyup', event => {
       if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') keys.left = false;
       if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') keys.right = false;
     });
+
+    function bindHold(button, keyName) {
+      const start = event => {
+        event.preventDefault();
+        keys[keyName] = true;
+      };
+      const stop = event => {
+        event.preventDefault();
+        keys[keyName] = false;
+      };
+      button.addEventListener('mousedown', start);
+      button.addEventListener('mouseup', stop);
+      button.addEventListener('mouseleave', stop);
+      button.addEventListener('touchstart', start, { passive: false });
+      button.addEventListener('touchend', stop, { passive: false });
+      button.addEventListener('touchcancel', stop, { passive: false });
+    }
+
+    bindHold(leftButton, 'left');
+    bindHold(rightButton, 'right');
+
+    startButton.dataset.locked = 'false';
 
     startButton.addEventListener('click', startGame);
 
