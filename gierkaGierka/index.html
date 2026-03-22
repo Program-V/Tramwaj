@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gierka Gierka</title>
+  <link rel="icon" href="/icon.ico" type="image/x-icon">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #09111f;
+      --panel: rgba(8, 20, 40, 0.88);
+      --accent: #f6d04d;
+      --accent-2: #67d4ff;
+      --danger: #ff6b6b;
+      --road: #444b57;
+      --road-line: #f4f1b2;
+      --text: #f4f8ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(103, 212, 255, 0.25), transparent 35%),
+        linear-gradient(180deg, #12213f 0%, var(--bg) 65%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+    }
+    .page {
+      width: min(1100px, 100%);
+      display: grid;
+      grid-template-columns: minmax(320px, 720px) minmax(260px, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+      backdrop-filter: blur(10px);
+    }
+    .game-shell { padding: 18px; }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 48px);
+      color: var(--accent);
+      text-align: center;
+    }
+    .subtitle {
+      margin: 0 0 16px;
+      text-align: center;
+      color: #d1dcf1;
+      line-height: 1.45;
+    }
+    .hud {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .hud-card {
+      min-width: 140px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+    }
+    .hud-label { font-size: 12px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+    .hud-value { font-size: 26px; font-weight: 700; margin-top: 4px; }
+    .game-wrap {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.14);
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: linear-gradient(180deg, #98d6ff 0%, #badfff 40%, #8db4d9 40%, #688c5e 100%);
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(4, 10, 20, 0.68);
+      padding: 20px;
+      text-align: center;
+    }
+    .overlay.hidden { display: none; }
+    .overlay-card {
+      max-width: 430px;
+      background: rgba(11, 26, 50, 0.92);
+      border-radius: 18px;
+      padding: 22px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .overlay-card h2 { margin-top: 0; color: var(--accent); }
+    .buttons { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 16px; }
+    button, .link-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    button:hover, .link-btn:hover { transform: translateY(-1px); opacity: 0.95; }
+    .primary { background: var(--accent); color: #111; }
+    .secondary { background: var(--accent-2); color: #072033; }
+    .link-btn { display: inline-flex; align-items: center; background: rgba(255,255,255,0.08); color: var(--text); }
+    .sidebar { padding: 18px; }
+    .sidebar h2, .sidebar h3 { margin-top: 0; }
+    .tip-list { padding-left: 18px; line-height: 1.55; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    th { color: var(--accent-2); font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; }
+    .small-note { font-size: 13px; color: #c5d0e6; line-height: 1.45; }
+    .warning {
+      margin-top: 14px;
+      border-left: 4px solid var(--danger);
+      padding: 10px 12px;
+      background: rgba(255, 107, 107, 0.12);
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    @media (max-width: 920px) {
+      .page { grid-template-columns: 1fr; }
+      body { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Gierka Gierka</h1>
+  <p class="subtitle">Steruj Edwardem Gierkiem, omijaj przeszkody i zrób jak najwyższy wynik, zanim plansza cię dogoni.</p>
+
+  <div class="page">
+    <section class="panel game-shell">
+      <div class="hud">
+        <div class="hud-card">
+          <div class="hud-label">Wynik</div>
+          <div class="hud-value" id="score">0</div>
+        </div>
+        <div class="hud-card">
+          <div class="hud-label">Najlepszy</div>
+          <div class="hud-value" id="bestScore">0</div>
+        </div>
+        <div class="hud-card">
+          <div class="hud-label">Prędkość</div>
+          <div class="hud-value" id="speed">1.0x</div>
+        </div>
+      </div>
+
+      <div class="game-wrap">
+        <canvas id="game" width="720" height="480" aria-label="Plansza gry"></canvas>
+        <div class="overlay" id="overlay">
+          <div class="overlay-card">
+            <h2 id="overlayTitle">Start!</h2>
+            <p id="overlayText">Kliknij „Graj”, a potem poruszaj się klawiszami strzałek lub A/D. Nie wpadaj w przeszkody.</p>
+            <div class="buttons">
+              <button class="primary" id="startButton">Graj</button>
+              <a class="link-btn" href="/">Wróć na główną</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel sidebar">
+      <h2>Jak grać?</h2>
+      <ul class="tip-list">
+        <li>Edward Gierek jedzie po trzech pasach drogi.</li>
+        <li>Plansza przyspiesza z czasem, więc gra robi się coraz trudniejsza.</li>
+        <li>Po zderzeniu możesz zapisać wynik pod swoim nickiem.</li>
+      </ul>
+
+      <h3>Tabela najlepszych wyników</h3>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Nick</th><th>Wynik</th></tr>
+        </thead>
+        <tbody id="leaderboardBody">
+          <tr><td colspan="3">Ładowanie wyników...</td></tr>
+        </tbody>
+      </table>
+      <p class="small-note">Gra ładuje bazowe rekordy z pliku <code>scores.json</code>, a nowe rekordy zapisuje w pamięci przeglądarki użytkownika.</p>
+      <div class="warning">Uwaga: ta strona jest statyczna, więc sama przeglądarka nie może fizycznie dopisać rekordu do pliku JSON na serwerze bez dodatkowego backendu.</div>
+    </aside>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlayText = document.getElementById('overlayText');
+    const startButton = document.getElementById('startButton');
+    const scoreEl = document.getElementById('score');
+    const bestScoreEl = document.getElementById('bestScore');
+    const speedEl = document.getElementById('speed');
+    const leaderboardBody = document.getElementById('leaderboardBody');
+
+    const STORAGE_KEY = 'gierka-gierka-scores';
+    const laneCenters = [220, 360, 500];
+    const state = {
+      running: false,
+      animationId: null,
+      distance: 0,
+      score: 0,
+      speed: 5,
+      playerLane: 1,
+      obstacles: [],
+      obstacleTimer: 0,
+      roadOffset: 0,
+      baseScores: [],
+      bestScores: []
+    };
+
+    const keys = { left: false, right: false };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    async function loadScores() {
+      try {
+        const response = await fetch('./scores.json', { cache: 'no-store' });
+        state.baseScores = response.ok ? await response.json() : [];
+      } catch (error) {
+        state.baseScores = [];
+      }
+      mergeScores();
+    }
+
+    function getLocalScores() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveLocalScores(scores) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+    }
+
+    function mergeScores() {
+      const merged = [...state.baseScores, ...getLocalScores()]
+        .filter(entry => entry && typeof entry.name === 'string' && Number.isFinite(entry.score))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+
+      state.bestScores = merged;
+      bestScoreEl.textContent = merged[0]?.score ?? 0;
+      leaderboardBody.innerHTML = merged.length
+        ? merged.map((entry, index) => `<tr><td>${index + 1}</td><td>${entry.name}</td><td>${entry.score}</td></tr>`).join('')
+        : '<tr><td colspan="3">Brak wyników</td></tr>';
+    }
+
+    function addScore(name, score) {
+      const localScores = getLocalScores();
+      localScores.push({ name: name.slice(0, 18), score });
+      localScores.sort((a, b) => b.score - a.score);
+      saveLocalScores(localScores.slice(0, 10));
+      mergeScores();
+    }
+
+    function resetGame() {
+      state.distance = 0;
+      state.score = 0;
+      state.speed = 5;
+      state.playerLane = 1;
+      state.obstacles = [];
+      state.obstacleTimer = 0;
+      state.roadOffset = 0;
+      scoreEl.textContent = '0';
+      speedEl.textContent = '1.0x';
+    }
+
+    function showOverlay(title, text, buttonLabel = 'Zagraj jeszcze raz') {
+      overlayTitle.textContent = title;
+      overlayText.innerHTML = text;
+      startButton.textContent = buttonLabel;
+      overlay.classList.remove('hidden');
+    }
+
+    function hideOverlay() {
+      overlay.classList.add('hidden');
+    }
+
+    function spawnObstacle() {
+      const lane = Math.floor(Math.random() * laneCenters.length);
+      const type = Math.random() > 0.5 ? 'barrier' : 'tram';
+      state.obstacles.push({
+        lane,
+        y: -120,
+        width: type === 'tram' ? 90 : 70,
+        height: type === 'tram' ? 130 : 78,
+        type
+      });
+    }
+
+    function update() {
+      if (!state.running) return;
+
+      if (keys.left) state.playerLane = clamp(state.playerLane - 0.14, 0, 2);
+      if (keys.right) state.playerLane = clamp(state.playerLane + 0.14, 0, 2);
+
+      state.distance += 1;
+      state.score = Math.floor(state.distance / 6);
+      state.speed = 5 + state.distance / 380;
+      state.roadOffset = (state.roadOffset + state.speed) % 80;
+      state.obstacleTimer += 1;
+
+      if (state.obstacleTimer > Math.max(24, 70 - state.speed * 4)) {
+        state.obstacleTimer = 0;
+        spawnObstacle();
+      }
+
+      state.obstacles.forEach(obstacle => {
+        obstacle.y += state.speed * 1.8;
+      });
+      state.obstacles = state.obstacles.filter(obstacle => obstacle.y < canvas.height + 140);
+
+      const playerX = laneCenters[Math.round(state.playerLane)];
+      const playerBox = { x: playerX - 38, y: canvas.height - 118, width: 76, height: 98 };
+
+      const collided = state.obstacles.some(obstacle => {
+        const obstacleX = laneCenters[obstacle.lane] - obstacle.width / 2;
+        return playerBox.x < obstacleX + obstacle.width &&
+          playerBox.x + playerBox.width > obstacleX &&
+          playerBox.y < obstacle.y + obstacle.height &&
+          playerBox.y + playerBox.height > obstacle.y;
+      });
+
+      scoreEl.textContent = state.score;
+      speedEl.textContent = `${(state.speed / 5).toFixed(1)}x`;
+
+      if (collided) {
+        endGame();
+      }
+    }
+
+    function drawBackground() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#7eb15f';
+      ctx.fillRect(0, 170, canvas.width, canvas.height - 170);
+
+      ctx.fillStyle = '#4a505a';
+      ctx.beginPath();
+      ctx.moveTo(130, 480);
+      ctx.lineTo(590, 480);
+      ctx.lineTo(470, 160);
+      ctx.lineTo(250, 160);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#f4f1b2';
+      ctx.lineWidth = 6;
+      for (let lane = 1; lane <= 2; lane += 1) {
+        const bottomX = 130 + lane * ((590 - 130) / 3);
+        const topX = 250 + lane * ((470 - 250) / 3);
+        for (let i = -1; i < 8; i += 1) {
+          const offset = ((i * 80) + state.roadOffset) % 560;
+          const progress1 = offset / 560;
+          const progress2 = (offset + 42) / 560;
+          const x1 = bottomX + (topX - bottomX) * progress1;
+          const y1 = 480 - 320 * progress1;
+          const x2 = bottomX + (topX - bottomX) * progress2;
+          const y2 = 480 - 320 * progress2;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+      }
+
+      ctx.fillStyle = '#d6dbc3';
+      for (let i = 0; i < 5; i += 1) {
+        ctx.fillRect(60 + i * 150, 130, 18, 40);
+      }
+    }
+
+    function drawPlayer() {
+      const playerX = laneCenters[Math.round(state.playerLane)];
+      const baseY = canvas.height - 115;
+
+      ctx.fillStyle = '#1a2a45';
+      ctx.fillRect(playerX - 24, baseY - 10, 48, 70);
+      ctx.fillStyle = '#f2c38f';
+      ctx.beginPath();
+      ctx.arc(playerX, baseY - 26, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.fillText('EG', playerX - 12, baseY + 20);
+      ctx.fillStyle = '#d93d3d';
+      ctx.fillRect(playerX - 28, baseY + 58, 56, 12);
+      ctx.fillStyle = '#111';
+      ctx.fillRect(playerX - 22, baseY + 70, 14, 20);
+      ctx.fillRect(playerX + 8, baseY + 70, 14, 20);
+    }
+
+    function drawObstacle(obstacle) {
+      const x = laneCenters[obstacle.lane] - obstacle.width / 2;
+      if (obstacle.type === 'tram') {
+        ctx.fillStyle = '#d62027';
+        ctx.fillRect(x, obstacle.y, obstacle.width, obstacle.height);
+        ctx.fillStyle = '#f7f0b2';
+        ctx.fillRect(x + 10, obstacle.y + 16, obstacle.width - 20, 24);
+        ctx.fillStyle = '#20242a';
+        ctx.fillRect(x + 16, obstacle.y + 60, obstacle.width - 32, 48);
+      } else {
+        ctx.fillStyle = '#f79e1b';
+        ctx.fillRect(x, obstacle.y, obstacle.width, obstacle.height);
+        ctx.fillStyle = '#fff';
+        for (let i = 0; i < 4; i += 1) {
+          ctx.fillRect(x + 8 + i * 14, obstacle.y + 12 + i * 12, 10, 6);
+        }
+      }
+    }
+
+    function draw() {
+      drawBackground();
+      state.obstacles.forEach(drawObstacle);
+      ctx.font = 'bold 24px Arial';
+      drawPlayer();
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      if (state.running) {
+        state.animationId = requestAnimationFrame(gameLoop);
+      }
+    }
+
+    function endGame() {
+      state.running = false;
+      cancelAnimationFrame(state.animationId);
+      const score = state.score;
+      const qualifies = !state.bestScores[9] || score > state.bestScores[9].score || state.bestScores.length < 10;
+      let summary = `Koniec gry! Twój wynik: <strong>${score}</strong>.`;
+
+      if (qualifies && score > 0) {
+        const nickname = prompt('Podaj nick do tabeli wyników:', 'Towarzysz');
+        if (nickname && nickname.trim()) {
+          addScore(nickname.trim(), score);
+          summary += ' Wynik został zapisany w lokalnej tabeli rekordów.';
+        }
+      }
+
+      showOverlay('BUM!', summary, 'Spróbuj ponownie');
+    }
+
+    function startGame() {
+      resetGame();
+      hideOverlay();
+      state.running = true;
+      draw();
+      gameLoop();
+    }
+
+    window.addEventListener('keydown', event => {
+      if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') keys.left = true;
+      if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') keys.right = true;
+      if (!state.running && event.key === 'Enter') startGame();
+    });
+
+    window.addEventListener('keyup', event => {
+      if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') keys.left = false;
+      if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') keys.right = false;
+    });
+
+    startButton.addEventListener('click', startGame);
+
+    loadScores().then(draw);
+  </script>
+</body>
+</html>
